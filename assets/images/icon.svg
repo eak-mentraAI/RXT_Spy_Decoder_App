@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- Background -->
+  <rect width="512" height="512" fill="#0a0a0a"/>
+  
+  <!-- Spy icon -->
+  <g transform="translate(256, 256)">
+    <!-- Hat -->
+    <ellipse cx="0" cy="-80" rx="100" ry="30" fill="#00ffcc"/>
+    <rect x="-80" y="-110" width="160" height="40" fill="#00ffcc"/>
+    
+    <!-- Face -->
+    <circle cx="0" cy="0" r="80" fill="#1a1a1a" stroke="#00ffcc" stroke-width="4"/>
+    
+    <!-- Sunglasses -->
+    <rect x="-70" y="-20" width="60" height="35" rx="10" fill="#00ffcc"/>
+    <rect x="10" y="-20" width="60" height="35" rx="10" fill="#00ffcc"/>
+    <rect x="-10" y="-5" width="20" height="5" fill="#00ffcc"/>
+    
+    <!-- Mysterious smile -->
+    <path d="M -30,30 Q 0,50 30,30" stroke="#ff6600" stroke-width="3" fill="none"/>
+  </g>
+  
+  <!-- Lock icon in corner -->
+  <g transform="translate(420, 420)">
+    <rect x="-25" y="0" width="50" height="35" rx="5" fill="#ff6600"/>
+    <path d="M -15,-15 Q 0,-25 15,-15 L 15,0 L -15,0 Z" stroke="#ff6600" stroke-width="8" fill="none"/>
+    <circle cx="0" cy="15" r="5" fill="#0a0a0a"/>
+  </g>
+  
+  <!-- Text -->
+  <text x="256" y="480" text-anchor="middle" font-family="monospace" font-size="32" fill="#00ffcc">DECODER</text>
+</svg>

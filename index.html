@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, touch-action=manipulation">
+    <meta name="theme-color" content="#000000">
+    <meta name="description" content="Decode secret messages in this Halloween spy adventure">
+    <title>Operation Trick-or-Quest | Spy Decoder</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="assets/images/icon-192.png">
+</head>
+<body>
+    <div class="container">
+        <header class="app-header" role="banner">
+            <h1 class="glow-text neon-flicker">🕵️ OPERATION TRICK-OR-QUEST</h1>
+            <p class="subtitle">TOP SECRET DECODER</p>
+        </header>
+
+        <main class="decoder-panel" role="main">
+            <section class="input-section" aria-labelledby="input-label">
+                <label id="input-label" 
+                       for="coded-message" 
+                       class="input-label">
+                    ENCRYPTED MESSAGE:
+                </label>
+                <textarea 
+                    id="coded-message" 
+                    class="code-input"
+                    placeholder="ENTER CODED MESSAGE..."
+                    rows="3"
+                    maxlength="500"
+                    aria-describedby="input-help"
+                    aria-required="true"
+                ></textarea>
+                <span id="input-help" class="sr-only">
+                    Enter the coded message you want to decode. Only letters will be shifted.
+                </span>
+                <div class="char-counter">
+                    <span id="char-count">0</span> / 500
+                </div>
+            </section>
+
+            <section class="controls-section" aria-labelledby="shift-label">
+                <label id="shift-label" 
+                       for="shift-slider" 
+                       class="input-label">
+                    CIPHER SHIFT:
+                </label>
+                <div class="shift-controls">
+                    <input 
+                        type="range" 
+                        id="shift-slider" 
+                        min="-13" 
+                        max="13" 
+                        value="0"
+                        class="shift-slider"
+                        aria-valuemin="-13"
+                        aria-valuemax="13"
+                        aria-valuenow="0"
+                        aria-label="Shift value slider"
+                    >
+                    <input 
+                        type="number" 
+                        id="shift-number" 
+                        min="-13" 
+                        max="13" 
+                        value="0"
+                        class="shift-number"
+                        aria-label="Shift value number input"
+                    >
+                </div>
+                <div class="shift-display" 
+                     role="status" 
+                     aria-live="polite" 
+                     aria-atomic="true">
+                    SHIFT: <span id="shift-value">0</span>
+                </div>
+            </section>
+
+            <button id="decode-btn" 
+                    class="decode-button"
+                    aria-label="Decode the message"
+                    aria-describedby="decode-help">
+                <span class="button-text">DECODE MESSAGE</span>
+                <span class="button-icon" aria-hidden="true">🔓</span>
+            </button>
+            <span id="decode-help" class="sr-only">
+                Click to decode the message using the selected shift value
+            </span>
+
+            <section class="output-section" 
+                     id="output-section" 
+                     style="display: none;"
+                     role="region"
+                     aria-labelledby="output-label"
+                     aria-live="polite">
+                <label id="output-label" class="input-label">DECODED MESSAGE:</label>
+                <div id="decoded-output" 
+                     class="decoded-text glow-text"
+                     role="textbox"
+                     aria-readonly="true"
+                     tabindex="0"></div>
+            </section>
+        </main>
+
+        <!-- Success Modal -->
+        <div id="success-modal" class="success-modal" style="display: none;">
+            <div class="modal-content">
+                <h2 class="access-granted">ACCESS GRANTED</h2>
+                <p class="success-message">MISSION COMPLETE!</p>
+            </div>
+        </div>
+
+        <!-- Admin Login Modal -->
+        <div id="admin-login-modal" class="admin-modal" style="display: none;">
+            <div class="admin-modal-content">
+                <h3>🔐 Admin Access</h3>
+                <input 
+                    type="password" 
+                    id="admin-password" 
+                    class="admin-password-input"
+                    placeholder="Enter admin password"
+                    aria-label="Admin password"
+                >
+                <div class="admin-actions">
+                    <button id="admin-login-btn" class="admin-btn">Login</button>
+                    <button id="admin-cancel-btn" class="admin-btn cancel">Cancel</button>
+                </div>
+                <div id="admin-error" class="admin-error" style="display: none;">
+                    Incorrect password
+                </div>
+            </div>
+        </div>
+
+        <!-- Admin Management Panel -->
+        <div id="admin-management" class="admin-management" style="display: none;">
+            <div class="admin-header">
+                <h3>🛠️ Admin Dashboard</h3>
+                <button id="admin-logout" class="admin-logout">Logout</button>
+            </div>
+            
+            <div class="admin-section">
+                <h4>Winning Phrases Management</h4>
+                <textarea 
+                    id="winning-phrases-editor" 
+                    class="phrases-editor"
+                    placeholder="Enter winning phrases (one per line)"
+                    rows="10"
+                ></textarea>
+                <button id="save-phrases-btn" class="admin-btn">Save Phrases</button>
+                <div id="save-status" class="save-status"></div>
+            </div>
+
+            <div class="admin-section">
+                <h4>📊 Event Statistics</h4>
+                <div id="stats-display" class="stats-display">
+                    <div class="stat-item">
+                        <span class="stat-label">Total Decodes:</span>
+                        <span id="stat-decodes">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Successful Unlocks:</span>
+                        <span id="stat-unlocks">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Completion Rate:</span>
+                        <span id="stat-rate">0%</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Average Shift:</span>
+                        <span id="stat-shift">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Unique Sessions:</span>
+                        <span id="stat-sessions">0</span>
+                    </div>
+                </div>
+                <button id="clear-stats-btn" class="admin-btn danger">Clear Statistics</button>
+                <button id="export-stats-btn" class="admin-btn">Export Stats</button>
+            </div>
+        </div>
+
+        <!-- Footer with Logo and Sound Button -->
+        <footer class="app-footer">
+            <div class="footer-content">
+                <img src="assets/images/rackspace-logo.png" alt="Rackspace Technology" class="sponsor-logo-footer">
+                <p class="footer-text">Powered by Rackspace Technology for Halloween Community Fundraiser 2025</p>
+                <div class="footer-buttons">
+                    <button id="sound-toggle" 
+                            class="sound-toggle" 
+                            aria-label="Toggle sound effects"
+                            aria-pressed="true"
+                            role="switch">
+                        <span class="sound-on" aria-hidden="true">🔊</span>
+                        <span class="sound-off" style="display: none;" aria-hidden="true">🔇</span>
+                    </button>
+                    <button id="help-toggle" 
+                            class="help-toggle" 
+                            aria-label="Open user guide"
+                            role="button">
+                        <span aria-hidden="true">📖</span>
+                    </button>
+                </div>
+            </div>
+        </footer>
+
+        <!-- User Guide Modal -->
+        <div id="user-guide-modal" class="user-guide-modal" style="display: none;">
+            <div class="user-guide-content">
+                <div class="guide-header">
+                    <h2>📖 User Guide</h2>
+                    <button id="close-guide" class="close-guide" aria-label="Close guide">×</button>
+                </div>
+                <div class="guide-body">
+                    <!-- Quick Start -->
+                    <section class="guide-section">
+                        <h3>🚀 Quick Start</h3>
+                        <ol>
+                            <li><strong>Enter Message:</strong> Type your encrypted text in the message box</li>
+                            <li><strong>Set Shift:</strong> Use the slider or number box (-13 to +13)</li>
+                            <li><strong>Decode:</strong> Click the DECODE MESSAGE button</li>
+                            <li><strong>Win:</strong> Find a winning phrase to see confetti!</li>
+                        </ol>
+                    </section>
+
+                    <!-- How It Works -->
+                    <section class="guide-section">
+                        <h3>🔐 How Caesar Cipher Works</h3>
+                        <p>Each letter shifts by a fixed number in the alphabet:</p>
+                        <ul>
+                            <li><strong>Shift +3:</strong> A→D, B→E, C→F</li>
+                            <li><strong>Shift -3:</strong> A→X, B→Y, C→Z</li>
+                        </ul>
+                        <div class="example-box">
+                            <strong>Example:</strong> HELLO with shift +5 = MJQQT
+                        </div>
+                    </section>
+
+                    <!-- Winning Phrases -->
+                    <section class="guide-section">
+                        <h3>🏆 Winning Phrases</h3>
+                        <div class="phrases-grid">
+                            <span class="phrase-tag">TOP SECRET</span>
+                            <span class="phrase-tag">MISSION COMPLETE</span>
+                            <span class="phrase-tag">CRYPTO</span>
+                            <span class="phrase-tag">RACKSPACE</span>
+                            <span class="phrase-tag">TRICK OR TREAT</span>
+                            <span class="phrase-tag">HALLOWEEN</span>
+                            <span class="phrase-tag">ACCESS GRANTED</span>
+                        </div>
+                    </section>
+
+                    <!-- Practice Challenges -->
+                    <section class="guide-section">
+                        <h3>🎯 Try These Challenges</h3>
+                        <div class="challenge-list">
+                            <div class="challenge">
+                                <strong>Easy:</strong> UFTU NFTTBHF (Shift +1)<br>
+                                <span class="answer">Answer: TEST MESSAGE</span>
+                            </div>
+                            <div class="challenge">
+                                <strong>Medium:</strong> AYPJR VY AYLA (Shift -7)<br>
+                                <span class="answer">Answer: TRICK OR TREAT</span>
+                            </div>
+                            <div class="challenge">
+                                <strong>Hard:</strong> GBC FRPERG (Shift +13)<br>
+                                <span class="answer">Answer: TOP SECRET</span>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Keyboard Shortcuts -->
+                    <section class="guide-section">
+                        <h3>⌨️ Keyboard Shortcuts</h3>
+                        <table class="shortcuts-table">
+                            <tr>
+                                <td><kbd>Ctrl</kbd>+<kbd>Enter</kbd></td>
+                                <td>Decode message</td>
+                            </tr>
+                            <tr>
+                                <td><kbd>Escape</kbd></td>
+                                <td>Clear all inputs</td>
+                            </tr>
+                            <tr>
+                                <td><kbd>↑</kbd> <kbd>↓</kbd></td>
+                                <td>Adjust shift (when focused)</td>
+                            </tr>
+                        </table>
+                    </section>
+
+                    <!-- Mobile Tips -->
+                    <section class="guide-section">
+                        <h3>📱 Mobile Tips</h3>
+                        <ul>
+                            <li>Swipe left on message box to clear</li>
+                            <li>Double-tap disabled to prevent zoom</li>
+                            <li>Add to home screen for app-like experience</li>
+                            <li>Works offline after first visit!</li>
+                        </ul>
+                    </section>
+
+                    <!-- Pro Tips -->
+                    <section class="guide-section">
+                        <h3>💡 Pro Tips</h3>
+                        <ul>
+                            <li>Start with common shifts: ±1, ±13</li>
+                            <li>Single letters are often "A" or "I"</li>
+                            <li>"THE" is the most common 3-letter word</li>
+                            <li>Quickly scan through shifts with the slider</li>
+                        </ul>
+                    </section>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/decoder.js"></script>
+</body>
+</html>

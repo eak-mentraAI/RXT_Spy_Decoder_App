@@ -1,0 +1,32 @@
+{
+    "name": "Spy Decoder - Operation Trick-or-Quest",
+    "short_name": "Spy Decoder",
+    "description": "Decode secret messages in this Halloween spy adventure",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#0a0a0a",
+    "theme_color": "#00ffcc",
+    "orientation": "portrait",
+    "icons": [
+        {
+            "src": "assets/images/icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "assets/images/icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any maskable"
+        }
+    ],
+    "categories": ["education", "entertainment", "games"],
+    "screenshots": [
+        {
+            "src": "assets/images/screenshot1.png",
+            "sizes": "540x720",
+            "type": "image/png"
+        }
+    ]
+}
