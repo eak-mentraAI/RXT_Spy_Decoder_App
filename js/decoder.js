@@ -563,7 +563,9 @@ class SuccessHistoryManager {
     }
     
     updateDisplay(newPhrase = null) {
-        if (!this.historySection || !this.historyContent) return;
+        if (!this.historySection || !this.historyContent) {
+            return;
+        }
         
         // Show section if we have history
         if (this.successHistory.length > 0) {
@@ -656,6 +658,19 @@ function initializeManagers() {
     adminSystem = new AdminSystem();
     analytics = new PrivacyAnalytics();
     successHistory = new SuccessHistoryManager();
+    
+    // Make sure WINNING_PHRASES is available globally if not set by admin
+    if (!window.WINNING_PHRASES) {
+        window.WINNING_PHRASES = [
+            'TOP SECRET',
+            'MISSION COMPLETE',
+            'CRYPTO',
+            'RACKSPACE',
+            'TRICK OR TREAT',
+            'HALLOWEEN',
+            'ACCESS GRANTED'
+        ];
+    }
     
     // Initialize success history display
     successHistory.initializeDisplay();
@@ -916,7 +931,9 @@ function performDecode() {
 }
 
 function checkForWin(decodedText) {
-    if (!window.WINNING_PHRASES) return null;
+    if (!window.WINNING_PHRASES) {
+        return null;
+    }
     
     const normalizedText = decodedText.toUpperCase().replace(/[^A-Z]/g, '');
     
