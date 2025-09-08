@@ -490,6 +490,128 @@ class AdminSystem {
 }
 
 // ========================================
+// Success History Manager
+// ========================================
+
+class SuccessHistoryManager {
+    constructor() {
+        this.storageKey = 'spy-decoder-success-history';
+        this.successHistory = this.loadHistory();
+        this.historySection = null;
+        this.historyContent = null;
+        this.progressText = null;
+        this.progressFill = null;
+    }
+    
+    loadHistory() {
+        try {
+            const stored = localStorage.getItem(this.storageKey);
+            return stored ? JSON.parse(stored) : [];
+        } catch (e) {
+            return [];
+        }
+    }
+    
+    saveHistory() {
+        try {
+            localStorage.setItem(this.storageKey, JSON.stringify(this.successHistory));
+        } catch (e) {
+            console.warn('Could not save success history:', e);
+        }
+    }
+    
+    addSuccess(phrase) {
+        // Normalize phrase for comparison
+        const normalizedPhrase = phrase.toUpperCase().trim();
+        
+        // Check if already in history
+        if (!this.successHistory.includes(normalizedPhrase)) {
+            this.successHistory.push(normalizedPhrase);
+            this.saveHistory();
+            this.updateDisplay(normalizedPhrase);
+            return true; // New success
+        }
+        return false; // Already had this one
+    }
+    
+    clearHistory() {
+        this.successHistory = [];
+        this.saveHistory();
+        this.updateDisplay();
+    }
+    
+    initializeDisplay() {
+        this.historySection = document.getElementById('success-history');
+        this.historyContent = document.getElementById('history-content');
+        this.progressText = document.getElementById('progress-text');
+        this.progressFill = document.getElementById('progress-fill');
+        
+        // Set up clear button
+        const clearBtn = document.getElementById('clear-history');
+        if (clearBtn) {
+            clearBtn.addEventListener('click', () => {
+                if (this.successHistory.length > 0) {
+                    if (confirm('Clear all successfully decoded phrases?')) {
+                        this.clearHistory();
+                    }
+                }
+            });
+        }
+        
+        // Initial display update
+        this.updateDisplay();
+    }
+    
+    updateDisplay(newPhrase = null) {
+        if (!this.historySection || !this.historyContent) return;
+        
+        // Show section if we have history
+        if (this.successHistory.length > 0) {
+            this.historySection.style.display = 'block';
+            
+            // Update content
+            this.historyContent.innerHTML = '';
+            this.successHistory.forEach((phrase, index) => {
+                const item = document.createElement('div');
+                item.className = 'history-item';
+                if (phrase === newPhrase) {
+                    item.classList.add('new-item');
+                }
+                item.textContent = phrase;
+                this.historyContent.appendChild(item);
+            });
+        } else {
+            // Show empty state or hide section
+            this.historySection.style.display = 'none';
+        }
+        
+        // Update progress
+        this.updateProgress();
+    }
+    
+    updateProgress() {
+        if (!this.progressText || !this.progressFill) return;
+        
+        const total = window.WINNING_PHRASES ? window.WINNING_PHRASES.length : 7;
+        const found = this.successHistory.length;
+        const percentage = (found / total) * 100;
+        
+        this.progressText.textContent = `${found} of ${total} phrases found`;
+        this.progressFill.style.width = `${percentage}%`;
+        
+        // Add complete class if all found
+        const progressBar = document.querySelector('.progress-bar');
+        if (progressBar) {
+            if (percentage >= 100) {
+                progressBar.classList.add('complete');
+            } else {
+                progressBar.classList.remove('complete');
+            }
+        }
+    }
+}
+
+// ========================================
 // Main Application Logic
 // ========================================
 
@@ -499,7 +621,7 @@ let decodeButton, outputSection, decodedOutput, successModal;
 let charCount;
 
 // Initialize managers
-let soundManager, adminSystem, analytics;
+let soundManager, adminSystem, analytics, successHistory;
 
 // Constants
 const MAX_MESSAGE_LENGTH = 500;
@@ -533,6 +655,10 @@ function initializeManagers() {
     soundManager = new EnhancedSoundManager();
     adminSystem = new AdminSystem();
     analytics = new PrivacyAnalytics();
+    successHistory = new SuccessHistoryManager();
+    
+    // Initialize success history display
+    successHistory.initializeDisplay();
     
     // Track session start
     analytics.track('session');
@@ -805,6 +931,9 @@ function checkForWin(decodedText) {
 }
 
 function triggerSuccessAnimation(winningPhrase) {
+    // Add to success history
+    const isNewSuccess = successHistory.addSuccess(winningPhrase);
+    
     // Play unlock sound
     soundManager.play('unlock');
     
@@ -822,7 +951,8 @@ function triggerSuccessAnimation(winningPhrase) {
     // Track success
     analytics.track('unlock', { 
         phrase: winningPhrase,
-        timeToSolve: analytics.getSessionDuration()
+        timeToSolve: analytics.getSessionDuration(),
+        isNew: isNewSuccess
     });
     
     // Auto-hide after 4 seconds
