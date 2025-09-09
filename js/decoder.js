@@ -358,7 +358,8 @@ class AdminSystem {
                 
                 // Try to authenticate with backend for CSV export capability
                 try {
-                    await fetch('http://localhost:3002/api/admin/authenticate', {
+                    const apiUrl = window.APP_CONFIG ? window.APP_CONFIG.API_BASE_URL : 'http://localhost:3002/api';
+                    await fetch(`${apiUrl}/admin/authenticate`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ email, password })
@@ -513,7 +514,8 @@ class AdminSystem {
         const adminEmail = sessionStorage.getItem('adminEmail') || 'edward.kerr@rackspace.com';
         
         try {
-            const response = await fetch('http://localhost:3002/api/admin/stats', {
+            const apiUrl = window.APP_CONFIG ? window.APP_CONFIG.API_BASE_URL : 'http://localhost:3002/api';
+            const response = await fetch(`${apiUrl}/admin/stats`, {
                 headers: {
                     'Authorization': `Admin ${adminEmail}`
                 }
@@ -599,7 +601,8 @@ class AdminSystem {
         const adminEmail = sessionStorage.getItem('adminEmail') || 'edward.kerr@rackspace.com';
         
         try {
-            const response = await fetch('http://localhost:3002/api/admin/export-csv', {
+            const apiUrl = window.APP_CONFIG ? window.APP_CONFIG.API_BASE_URL : 'http://localhost:3002/api';
+            const response = await fetch(`${apiUrl}/admin/export-csv`, {
                 headers: {
                     'Authorization': `Admin ${adminEmail}`
                 }
