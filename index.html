@@ -123,6 +123,56 @@
             </div>
         </section>
 
+        <!-- Login Modal -->
+        <div id="login-modal" class="login-modal">
+            <div class="login-modal-content">
+                <h2>🕵️ Agent Login</h2>
+                <p class="login-subtitle">Enter your credentials to track your progress and gain entry to the raffle</p>
+                <form id="login-form">
+                    <div class="form-group">
+                        <label for="user-email">Email:</label>
+                        <input 
+                            type="email" 
+                            id="user-email" 
+                            class="login-input"
+                            placeholder="agent@example.com"
+                            required
+                        >
+                        <span id="email-error" class="error-message"></span>
+                    </div>
+                    <div class="form-group">
+                        <label for="user-firstname">First Name:</label>
+                        <input 
+                            type="text" 
+                            id="user-firstname" 
+                            class="login-input"
+                            placeholder="James"
+                            required
+                        >
+                    </div>
+                    <div class="form-group">
+                        <label for="user-lastname">Last Name:</label>
+                        <input 
+                            type="text" 
+                            id="user-lastname" 
+                            class="login-input"
+                            placeholder="Bond"
+                            required
+                        >
+                    </div>
+                    <button type="submit" class="login-btn">Start Mission</button>
+                    <button type="button" id="skip-login" class="skip-btn">Play Without Login</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- User Info Bar -->
+        <div id="user-info-bar" class="user-info-bar" style="display: none;">
+            <span id="user-display"></span>
+            <button id="view-leaderboard" class="leaderboard-btn">🏆 Leaderboard</button>
+            <button id="logout-btn" class="logout-btn">Logout</button>
+        </div>
+
         <!-- Success Modal -->
         <div id="success-modal" class="success-modal" style="display: none;">
             <div class="modal-content">
@@ -135,11 +185,22 @@
         <div id="admin-login-modal" class="admin-modal" style="display: none;">
             <div class="admin-modal-content">
                 <h3>🔐 Admin Access</h3>
+                <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 15px;">
+                    Enter admin credentials to access management panel
+                </p>
+                <input 
+                    type="email" 
+                    id="admin-email" 
+                    class="admin-password-input"
+                    placeholder="Admin email"
+                    aria-label="Admin email"
+                    style="margin-bottom: 10px;"
+                >
                 <input 
                     type="password" 
                     id="admin-password" 
                     class="admin-password-input"
-                    placeholder="Enter admin password"
+                    placeholder="Admin password"
                     aria-label="Admin password"
                 >
                 <div class="admin-actions">
@@ -172,31 +233,32 @@
             </div>
 
             <div class="admin-section">
-                <h4>📊 Event Statistics</h4>
+                <h4>📊 Event Statistics (Database)</h4>
                 <div id="stats-display" class="stats-display">
                     <div class="stat-item">
-                        <span class="stat-label">Total Decodes:</span>
+                        <span class="stat-label">Total Registered Users:</span>
+                        <span id="stat-sessions">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Users Completed (4+):</span>
+                        <span id="stat-unlocks">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Total Messages Decoded:</span>
                         <span id="stat-decodes">0</span>
                     </div>
                     <div class="stat-item">
-                        <span class="stat-label">Successful Unlocks:</span>
-                        <span id="stat-unlocks">0</span>
+                        <span class="stat-label">Avg Messages/User:</span>
+                        <span id="stat-shift">0</span>
                     </div>
                     <div class="stat-item">
                         <span class="stat-label">Completion Rate:</span>
                         <span id="stat-rate">0%</span>
                     </div>
-                    <div class="stat-item">
-                        <span class="stat-label">Average Shift:</span>
-                        <span id="stat-shift">0</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-label">Unique Sessions:</span>
-                        <span id="stat-sessions">0</span>
-                    </div>
                 </div>
                 <button id="clear-stats-btn" class="admin-btn danger">Clear Statistics</button>
                 <button id="export-stats-btn" class="admin-btn">Export Stats</button>
+                <button id="export-csv-btn" class="admin-btn" style="background: var(--success-color);">📊 Export All Users to CSV</button>
             </div>
         </div>
 
@@ -321,6 +383,6 @@
         </div>
     </div>
 
-    <script src="js/decoder.js"></script>
+    <script type="module" src="js/decoder.js"></script>
 </body>
 </html>

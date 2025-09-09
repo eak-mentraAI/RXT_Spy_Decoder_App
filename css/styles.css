@@ -29,9 +29,162 @@ body {
     max-width: 500px;
     margin: 0 auto;
     padding: 20px;
+    padding-top: 70px; /* Account for user info bar when present */
     min-height: 100vh;
     display: flex;
     flex-direction: column;
+    transition: padding-top 0.3s ease;
+}
+
+/* Login Modal */
+.login-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.95);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+}
+
+.login-modal-content {
+    background: var(--bg-secondary);
+    border: 2px solid var(--text-primary);
+    border-radius: 10px;
+    padding: 30px;
+    width: 90%;
+    max-width: 400px;
+    box-shadow: 0 0 30px rgba(0, 255, 204, 0.3);
+}
+
+.login-modal h2 {
+    color: var(--text-primary);
+    text-align: center;
+    margin-bottom: 10px;
+    font-size: 1.8rem;
+}
+
+.login-subtitle {
+    text-align: center;
+    color: var(--text-secondary);
+    margin-bottom: 20px;
+    font-size: 0.9rem;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    color: var(--text-primary);
+    margin-bottom: 5px;
+    font-size: 0.9rem;
+}
+
+.login-input {
+    width: 100%;
+    padding: 10px;
+    background: var(--bg-primary);
+    border: 1px solid var(--text-primary);
+    color: var(--text-primary);
+    border-radius: 5px;
+    font-family: inherit;
+}
+
+.login-input:focus {
+    outline: none;
+    box-shadow: 0 0 10px rgba(0, 255, 204, 0.5);
+}
+
+.error-message {
+    color: var(--danger-color);
+    font-size: 0.85rem;
+    margin-top: 5px;
+    display: none;
+}
+
+.login-btn {
+    width: 100%;
+    padding: 12px;
+    background: var(--text-primary);
+    color: var(--bg-primary);
+    border: none;
+    border-radius: 5px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: all 0.3s;
+}
+
+.login-btn:hover {
+    background: var(--success-color);
+    transform: translateY(-2px);
+}
+
+.skip-btn {
+    width: 100%;
+    padding: 10px;
+    background: transparent;
+    color: var(--text-secondary);
+    border: 1px solid var(--text-secondary);
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: all 0.3s;
+}
+
+.skip-btn:hover {
+    background: var(--text-secondary);
+    color: var(--bg-primary);
+}
+
+/* User Info Bar */
+.user-info-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: rgba(26, 26, 26, 0.95);
+    backdrop-filter: blur(10px);
+    padding: 10px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 1000;
+    border-bottom: 1px solid var(--text-primary);
+}
+
+#user-display {
+    color: var(--text-primary);
+    font-weight: bold;
+}
+
+.leaderboard-btn, .logout-btn {
+    padding: 5px 15px;
+    background: var(--text-primary);
+    color: var(--bg-primary);
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.3s;
+}
+
+.logout-btn {
+    background: var(--text-secondary);
+    margin-left: 10px;
+}
+
+.leaderboard-btn:hover {
+    background: var(--success-color);
+}
+
+.logout-btn:hover {
+    background: var(--danger-color);
 }
 
 /* Header Styles */
@@ -468,17 +621,48 @@ body {
 
 .admin-management {
     position: fixed;
-    top: 20px;
-    right: 20px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
     background: var(--bg-secondary);
     border: 2px solid var(--text-primary);
     border-radius: 10px;
     padding: 20px;
-    max-width: 400px;
-    max-height: 80vh;
+    width: 90%;
+    max-width: 600px;
+    max-height: 90vh;
     overflow-y: auto;
     z-index: 9999;
     box-shadow: 0 0 30px rgba(0, 255, 204, 0.3);
+}
+
+/* Mobile adjustments for admin panel */
+@media (max-width: 768px) {
+    .admin-management {
+        width: 95%;
+        max-width: none;
+        top: 10px;
+        transform: translateX(-50%);
+        bottom: 10px;
+        max-height: calc(100vh - 20px);
+    }
+    
+    .admin-section {
+        margin-bottom: 20px;
+    }
+    
+    .admin-btn {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+    
+    .stats-display {
+        font-size: 0.9rem;
+    }
+    
+    .phrases-editor {
+        min-height: 150px;
+    }
 }
 
 .admin-header {

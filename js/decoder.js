@@ -1,3 +1,5 @@
+import apiService from './api.js';
+
 // ========================================
 // Core Caesar Cipher Logic
 // ========================================
@@ -251,7 +253,7 @@ class AdminSystem {
     }
     
     setupAdminToggle() {
-        // Triple-click on header to open admin
+        // Triple-click on header to open admin (desktop)
         let clickCount = 0;
         let clickTimer;
         
@@ -275,6 +277,37 @@ class AdminSystem {
             });
         }
         
+        // Mobile: Long press (3 seconds) on the header
+        if (header) {
+            let pressTimer;
+            let startTime;
+            
+            const startPress = (e) => {
+                startTime = Date.now();
+                pressTimer = setTimeout(() => {
+                    // Vibrate if available for feedback
+                    if ('vibrate' in navigator) {
+                        navigator.vibrate(100);
+                    }
+                    this.showAdminLogin();
+                }, 3000); // 3 second hold
+            };
+            
+            const cancelPress = () => {
+                clearTimeout(pressTimer);
+            };
+            
+            // Touch events for mobile
+            header.addEventListener('touchstart', startPress, { passive: true });
+            header.addEventListener('touchend', cancelPress);
+            header.addEventListener('touchmove', cancelPress);
+            
+            // Mouse events for desktop (long press simulation)
+            header.addEventListener('mousedown', startPress);
+            header.addEventListener('mouseup', cancelPress);
+            header.addEventListener('mouseleave', cancelPress);
+        }
+        
         // Keyboard shortcut (Ctrl+Shift+A)
         document.addEventListener('keydown', (e) => {
             if (e.ctrlKey && e.shiftKey && e.key === 'A') {
@@ -295,27 +328,47 @@ class AdminSystem {
         
         modal.style.display = 'flex';
         
+        const emailInput = document.getElementById('admin-email');
         const passwordInput = document.getElementById('admin-password');
         const loginBtn = document.getElementById('admin-login-btn');
         const cancelBtn = document.getElementById('admin-cancel-btn');
         const errorMsg = document.getElementById('admin-error');
         
         // Clear previous attempts
+        if (emailInput) emailInput.value = '';
         passwordInput.value = '';
         errorMsg.style.display = 'none';
         
-        // Focus password input
-        passwordInput.focus();
+        // Focus email input
+        if (emailInput) emailInput.focus();
         
         // Handle login
-        const attemptLogin = () => {
-            if (passwordInput.value === this.PASSWORD) {
+        const attemptLogin = async () => {
+            const email = emailInput ? emailInput.value : 'edward.kerr@rackspace.com';
+            const password = passwordInput.value;
+            
+            // Check admin credentials
+            if (email === 'edward.kerr@rackspace.com' && password === this.PASSWORD) {
                 this.isAuthenticated = true;
+                this.adminEmail = email;
                 sessionStorage.setItem(this.storageKeys.adminAuth, 'true');
+                sessionStorage.setItem('adminEmail', email);
                 modal.style.display = 'none';
                 this.showManagementPanel();
+                
+                // Try to authenticate with backend for CSV export capability
+                try {
+                    await fetch('http://localhost:3002/api/admin/authenticate', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email, password })
+                    });
+                } catch (error) {
+                    console.log('Backend auth not available, using local mode');
+                }
             } else {
                 errorMsg.style.display = 'block';
+                errorMsg.textContent = 'Invalid admin credentials';
                 passwordInput.value = '';
                 passwordInput.focus();
                 
@@ -328,6 +381,11 @@ class AdminSystem {
         passwordInput.onkeypress = (e) => {
             if (e.key === 'Enter') attemptLogin();
         };
+        if (emailInput) {
+            emailInput.onkeypress = (e) => {
+                if (e.key === 'Enter') passwordInput.focus();
+            };
+        }
         
         cancelBtn.onclick = () => {
             modal.style.display = 'none';
@@ -371,6 +429,12 @@ class AdminSystem {
         const exportBtn = document.getElementById('export-stats-btn');
         if (exportBtn) {
             exportBtn.onclick = () => this.exportStatistics();
+        }
+        
+        // Setup CSV export button
+        const exportCsvBtn = document.getElementById('export-csv-btn');
+        if (exportCsvBtn) {
+            exportCsvBtn.onclick = () => this.exportUsersToCSV();
         }
     }
     
@@ -444,7 +508,57 @@ class AdminSystem {
         }
     }
     
-    displayStatistics() {
+    async displayStatistics() {
+        // Try to fetch real stats from database
+        const adminEmail = sessionStorage.getItem('adminEmail') || 'edward.kerr@rackspace.com';
+        
+        try {
+            const response = await fetch('http://localhost:3002/api/admin/stats', {
+                headers: {
+                    'Authorization': `Admin ${adminEmail}`
+                }
+            });
+            
+            if (response.ok) {
+                const dbStats = await response.json();
+                
+                // Update display with database stats
+                const elements = {
+                    'stat-decodes': dbStats.totalMessagesDecoded || 0,
+                    'stat-unlocks': dbStats.completedUsers || 0,
+                    'stat-rate': `${dbStats.completionRate || 0}%`,
+                    'stat-shift': dbStats.avgMessagesPerUser || 0,
+                    'stat-sessions': dbStats.totalUsers || 0
+                };
+                
+                Object.entries(elements).forEach(([id, value]) => {
+                    const el = document.getElementById(id);
+                    if (el) el.textContent = value;
+                });
+                
+                // Update labels to reflect real data
+                const labelMap = {
+                    'stat-decodes': 'Total Messages Decoded:',
+                    'stat-unlocks': 'Users Completed (4+):',
+                    'stat-rate': 'Completion Rate:',
+                    'stat-shift': 'Avg Messages/User:',
+                    'stat-sessions': 'Total Registered Users:'
+                };
+                
+                Object.entries(labelMap).forEach(([id, label]) => {
+                    const el = document.getElementById(id);
+                    if (el && el.previousElementSibling) {
+                        el.previousElementSibling.textContent = label;
+                    }
+                });
+                
+                return;
+            }
+        } catch (error) {
+            console.log('Using local stats (backend not available)');
+        }
+        
+        // Fallback to local stats if backend not available
         const report = analytics.generateReport();
         
         const elements = {
@@ -481,9 +595,43 @@ class AdminSystem {
         exportLink.click();
     }
     
+    async exportUsersToCSV() {
+        const adminEmail = sessionStorage.getItem('adminEmail') || 'edward.kerr@rackspace.com';
+        
+        try {
+            const response = await fetch('http://localhost:3002/api/admin/export-csv', {
+                headers: {
+                    'Authorization': `Admin ${adminEmail}`
+                }
+            });
+            
+            if (response.ok) {
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `spy-decoder-users-${new Date().toISOString().split('T')[0]}.csv`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+                
+                // Show success message
+                alert('User data exported successfully! Check your downloads folder.');
+            } else {
+                alert('Failed to export data. Make sure the backend is running.');
+            }
+        } catch (error) {
+            console.error('Export error:', error);
+            alert('Error exporting data. The backend server may not be available.');
+        }
+    }
+    
     logout() {
         this.isAuthenticated = false;
+        this.adminEmail = null;
         sessionStorage.removeItem(this.storageKeys.adminAuth);
+        sessionStorage.removeItem('adminEmail');
         const panel = document.getElementById('admin-management');
         if (panel) panel.style.display = 'none';
     }
@@ -634,6 +782,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeElements();
     initializeManagers();
     setupEventListeners();
+    setupAuthenticationUI();
     setupKeyboardShortcuts();
     setupTouchGestures();
     setupServiceWorker();
@@ -658,6 +807,9 @@ function initializeManagers() {
     adminSystem = new AdminSystem();
     analytics = new PrivacyAnalytics();
     successHistory = new SuccessHistoryManager();
+    
+    // Check login status and setup authentication
+    checkLoginStatus();
     
     // Make sure WINNING_PHRASES is available globally if not set by admin
     if (!window.WINNING_PHRASES) {
@@ -951,6 +1103,14 @@ function triggerSuccessAnimation(winningPhrase) {
     // Add to success history
     const isNewSuccess = successHistory.addSuccess(winningPhrase);
     
+    // Update backend if logged in
+    if (apiService.isLoggedIn()) {
+        const totalDecoded = successHistory.successHistory.length;
+        apiService.updateProgress(totalDecoded).catch(err => {
+            console.error('Failed to update backend progress:', err);
+        });
+    }
+    
     // Play unlock sound
     soundManager.play('unlock');
     
@@ -1032,6 +1192,86 @@ function showError(message, duration = 5000) {
                 setTimeout(() => errorEl.remove(), 300);
             }
         }, duration);
+    }
+}
+
+function checkLoginStatus() {
+    const loginModal = document.getElementById('login-modal');
+    const userInfoBar = document.getElementById('user-info-bar');
+    const userDisplay = document.getElementById('user-display');
+    
+    if (apiService.isLoggedIn()) {
+        const user = apiService.getUser();
+        if (loginModal) loginModal.style.display = 'none';
+        if (userInfoBar) {
+            userInfoBar.style.display = 'flex';
+            if (userDisplay && user) {
+                userDisplay.textContent = `Agent: ${user.firstName} ${user.lastName}`;
+            }
+        }
+    } else {
+        if (loginModal) loginModal.style.display = 'flex';
+        if (userInfoBar) userInfoBar.style.display = 'none';
+    }
+}
+
+function setupAuthenticationUI() {
+    const loginForm = document.getElementById('login-form');
+    const skipLoginBtn = document.getElementById('skip-login');
+    const logoutBtn = document.getElementById('logout-btn');
+    const viewLeaderboardBtn = document.getElementById('view-leaderboard');
+    const emailInput = document.getElementById('user-email');
+    const emailError = document.getElementById('email-error');
+    
+    if (loginForm) {
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = document.getElementById('user-email').value;
+            const firstName = document.getElementById('user-firstname').value;
+            const lastName = document.getElementById('user-lastname').value;
+            
+            if (emailError) emailError.textContent = '';
+            
+            try {
+                await apiService.login(email, firstName, lastName);
+                checkLoginStatus();
+                soundManager.play('unlock');
+            } catch (error) {
+                if (emailError) {
+                    emailError.textContent = error.message;
+                    emailError.style.display = 'block';
+                }
+                soundManager.play('error');
+            }
+        });
+    }
+    
+    if (skipLoginBtn) {
+        skipLoginBtn.addEventListener('click', () => {
+            const loginModal = document.getElementById('login-modal');
+            if (loginModal) loginModal.style.display = 'none';
+        });
+    }
+    
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', () => {
+            apiService.logout();
+            checkLoginStatus();
+            successHistory.clearHistory();
+        });
+    }
+    
+    if (viewLeaderboardBtn) {
+        viewLeaderboardBtn.addEventListener('click', () => {
+            window.open('/leaderboard.html', '_blank');
+        });
+    }
+    
+    if (emailInput) {
+        emailInput.addEventListener('input', () => {
+            if (emailError) emailError.textContent = '';
+        });
     }
 }
 
